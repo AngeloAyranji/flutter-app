@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:geminiApp/repositories/geminy.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -13,7 +14,6 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -79,17 +79,14 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  late final GenerativeModel _model;
-  late final ChatSession _chat;
+  final GeminiRepository geminiRepository = GeminiRepository(apiKey: dotenv.env['API_KEY'] ?? '');
+  
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _loading = false;
 
   @override
   void initState() {
-    _model =
-        GenerativeModel(model: "gemini-pro", apiKey: dotenv.env['API_KEY']!);
-    _chat = _model.startChat();
     super.initState();
   }
 
@@ -106,20 +103,17 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: hasApiKey
                 ? ListView.builder(
-                    controller: _scrollController,
-                    itemBuilder: (context, idx) {
-                      final content = _chat.history.toList()[idx];
-                      final text = content.parts
-                          .whereType<TextPart>()
-                          .map<String>((e) => e.text)
-                          .join('');
-                      return MessageWidget(
-                        text: text,
-                        isFromUser: content.role == 'user',
-                      );
-                    },
-                    itemCount: _chat.history.length,
-                  )
+              controller: _scrollController,
+              itemBuilder: (context, idx) {
+                final content = geminiRepository.chat.history.toList()[idx];
+                final text = content.parts.whereType<TextPart>().map<String>((e) => e.text).join('');
+                return MessageWidget(
+                  text: text,
+                  isFromUser: content.role == 'user',
+                );
+              },
+              itemCount: geminiRepository.chat.history.length,
+            )
                 : ListView(
                     children: const [
                       Text('No API key found. Please provide an API Key.'),
@@ -192,12 +186,7 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() => _loading = true);
 
     try {
-      final response = await _chat.sendMessage(Content.text(message));
-      final text = response.text;
-      if (text == null) {
-        debugPrint('No response from API.');
-        return;
-      }
+      final text = await geminiRepository.sendMessage(message);
       setState(() => _loading = false);
     } catch (e) {
       debugPrint(e.toString());
