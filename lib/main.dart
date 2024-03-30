@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:geminiApp/repositories/geminy.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:convert';
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -17,7 +21,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple, brightness: Brightness.dark),
+        colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.deepPurple, brightness: Brightness.dark),
         useMaterial3: true,
       ),
       home: const Home(),
@@ -53,11 +58,13 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final GeminiRepository geminiRepository = GeminiRepository(apiKey: dotenv.env['API_KEY'] ?? '');
-  
+  final GeminiRepository geminiRepository =
+      GeminiRepository(apiKey: dotenv.env['API_KEY'] ?? '');
+
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _loading = false;
+  late XFile _pickedImage = XFile('');
 
   @override
   void initState() {
@@ -66,8 +73,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    bool hasApiKey = dotenv.env['API_KEY'] != null && dotenv.env['API_KEY']!.isNotEmpty;
-    return  Padding(
+    bool hasApiKey =
+        dotenv.env['API_KEY'] != null && dotenv.env['API_KEY']!.isNotEmpty;
+
+    return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -76,22 +85,26 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: hasApiKey
                 ? ListView.builder(
-              controller: _scrollController,
-              itemBuilder: (context, idx) {
-                final content = geminiRepository.chat.history.toList()[idx];
-                final text = content.parts.whereType<TextPart>().map<String>((e) => e.text).join('');
-                return MessageWidget(
-                  text: text,
-                  isFromUser: content.role == 'user',
-                );
-              },
-              itemCount: geminiRepository.chat.history.length,
-            )
+                    controller: _scrollController,
+                    itemBuilder: (context, idx) {
+                      final content =
+                          geminiRepository.chat.history.toList()[idx];
+                      final text = content.parts
+                          .whereType<TextPart>()
+                          .map<String>((e) => e.text)
+                          .join('');
+                      return MessageWidget(
+                        text: text,
+                        isFromUser: content.role == 'user',
+                      );
+                    },
+                    itemCount: geminiRepository.chat.history.length,
+                  )
                 : ListView(
-              children: const [
-                Text('No API key found. Please provide an API Key.'),
-              ],
-            ),
+                    children: const [
+                      Text('No API key found. Please provide an API Key.'),
+                    ],
+                  ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(
@@ -144,18 +157,38 @@ class _ChatScreenState extends State<ChatScreen> {
                   )
                 else
                   const CircularProgressIndicator(),
+                IconButton(
+                  onPressed: _pickImage,
+                  icon: Icon(
+                    Icons.image,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
               ],
             ),
+          ),
+          Wrap(
+            children: [_buildImagePreview(_pickedImage)],
           ),
         ],
       ),
     );
   }
+
   Future<void> _sendChatMessage(String message) async {
     setState(() => _loading = true);
 
     try {
-      final text = await geminiRepository.sendMessage(message);
+      if (_pickedImage.path.isNotEmpty) {
+        print("Sending image");
+        final text = await geminiRepository.sendMessageWithImage(
+          message,
+          _pickedImage,
+        );
+      } else {
+        print("Sending text");
+        final text = await geminiRepository.sendMessage(message);
+      }
       setState(() => _loading = false);
     } catch (e) {
       debugPrint(e.toString());
@@ -164,9 +197,41 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() => _loading = false);
     }
   }
+
+  Future<void> _pickImage() async {
+    final ImagePicker _picker = ImagePicker();
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      setState(() {
+        _pickedImage = image;
+      });
+    }
+  }
+
+  void _deleteImage(XFile image) {
+    setState(() {
+      _pickedImage = XFile('');
+    });
+  }
+
+  Widget _buildImagePreview(XFile image) {
+    return Stack(
+      alignment: Alignment.topRight,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image.file(File(image.path),
+              width: 100, height: 100, fit: BoxFit.cover),
+        ),
+        IconButton(
+          icon: Icon(Icons.cancel, color: Theme.of(context).colorScheme.error),
+          onPressed: () => _deleteImage(image),
+        ),
+      ],
+    );
+  }
 }
-
-
 
 class MessageWidget extends StatelessWidget {
   final String text;
@@ -181,7 +246,8 @@ class MessageWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: isFromUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+      mainAxisAlignment:
+          isFromUser ? MainAxisAlignment.end : MainAxisAlignment.start,
       children: [
         Flexible(
           child: Container(
