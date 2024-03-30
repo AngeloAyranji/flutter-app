@@ -4,15 +4,11 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 
 class GeminiRepository {
   late final GenerativeModel _model;
-  late final ChatSession _chat;
+  late final ChatSession chat;
   final String apiKey;
 
-  GeminiRepository._({required this.apiKey});
-
-  static Future<GeminiRepository> create({required String apiKey}) async {
-    final instance = GeminiRepository._(apiKey: apiKey);
-    instance._init();
-    return instance;
+  GeminiRepository({required this.apiKey}) {
+    _init();
   }
 
   void _init() async {
@@ -23,15 +19,27 @@ class GeminiRepository {
     }
     
     _model = GenerativeModel(model: "gemini-pro", apiKey: apiKey);
-    _chat = _model.startChat();
+    chat = _model.startChat();
   }
 
   Future<String> sendMessage(String message) async {
-    final response = await _chat.sendMessage(Content.text(message));
+    final response = await chat.sendMessage(Content.text(message));
     final text = response.text;
     if (text == null) {
       return 'No response from API.';
     }
     return text;
   }
+
+  // Future<String> sendMessageWithImage(String textInput, List<Uint8List> imageBytes) async {
+  //   var content= Content.text(textInput);
+
+
+  //   final response = await _chat.sendMessage(Content.multi(content, ...imageBytes));
+  //   final text = response.text;
+  //   if (text == null) {
+  //     return 'No response from API.';
+  //   }
+  //   return text;
+  // }
 }
