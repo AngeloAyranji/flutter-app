@@ -1,11 +1,11 @@
 name: "geminiApp"
 description: "Gemini integration flutter app"
-publish_to: 'none'
+publish_to: "none"
 
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
+  sdk: ">=3.3.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -24,4 +24,10 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-     - .env
+    - .env
+fonts:
+  - family: Poppins
+    fonts:
+      - asset: fonts/Poppins-Regular.ttf
+      - asset: fonts/Poppins-Bold.ttf
+        weight: 700
