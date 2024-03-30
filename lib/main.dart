@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
@@ -169,6 +170,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   dimension: 15,
                 ),
                 DropdownButton<String>(
+                  value: _selectedOption,
                   items: <String>['funny', 'sarcastic', 'professional']
                       .map((String value) {
                     return DropdownMenuItem<String>(
