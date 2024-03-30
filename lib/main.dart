@@ -79,11 +79,13 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final GeminiRepository geminiRepository = GeminiRepository(apiKey: dotenv.env['API_KEY'] ?? '');
-  
+  final GeminiRepository geminiRepository =
+      GeminiRepository(apiKey: dotenv.env['API_KEY'] ?? '');
+
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _loading = false;
+  String _selectedOption = "professional";
 
   @override
   void initState() {
@@ -103,17 +105,21 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: hasApiKey
                 ? ListView.builder(
-              controller: _scrollController,
-              itemBuilder: (context, idx) {
-                final content = geminiRepository.chat.history.toList()[idx];
-                final text = content.parts.whereType<TextPart>().map<String>((e) => e.text).join('');
-                return MessageWidget(
-                  text: text,
-                  isFromUser: content.role == 'user',
-                );
-              },
-              itemCount: geminiRepository.chat.history.length,
-            )
+                    controller: _scrollController,
+                    itemBuilder: (context, idx) {
+                      final content =
+                          geminiRepository.chat.history.toList()[idx];
+                      final text = content.parts
+                          .whereType<TextPart>()
+                          .map<String>((e) => e.text)
+                          .join('');
+                      return MessageWidget(
+                        text: text,
+                        isFromUser: content.role == 'user',
+                      );
+                    },
+                    itemCount: geminiRepository.chat.history.length,
+                  )
                 : ListView(
                     children: const [
                       Text('No API key found. Please provide an API Key.'),
@@ -155,17 +161,31 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ),
                     onFieldSubmitted: (String value) {
-                      _sendChatMessage(value);
+                      _sendChatMessage(value, _selectedOption);
                     },
                   ),
                 ),
                 const SizedBox.square(
                   dimension: 15,
                 ),
+                DropdownButton<String>(
+                  items: <String>['funny', 'sarcastic', 'professional']
+                      .map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedOption = newValue!;
+                    });
+                  },
+                ),
                 if (!_loading)
                   IconButton(
                     onPressed: () async {
-                      _sendChatMessage(_textController.text);
+                      _sendChatMessage(_textController.text, _selectedOption);
                     },
                     icon: Icon(
                       Icons.send,
@@ -182,11 +202,11 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Future<void> _sendChatMessage(String message) async {
+  Future<void> _sendChatMessage(String message, String mode) async {
     setState(() => _loading = true);
 
     try {
-      final text = await geminiRepository.sendMessage(message);
+      final text = await geminiRepository.sendMessage(message, mode);
       setState(() => _loading = false);
     } catch (e) {
       debugPrint(e.toString());

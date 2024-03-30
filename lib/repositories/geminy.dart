@@ -17,13 +17,14 @@ class GeminiRepository {
     if (apiKey == null) {
       throw Exception('API_KEY is not defined in the environment');
     }
-    
+
     _model = GenerativeModel(model: "gemini-pro", apiKey: apiKey);
     chat = _model.startChat();
   }
 
-  Future<String> sendMessage(String message) async {
-    final response = await chat.sendMessage(Content.text(message));
+  Future<String> sendMessage(String message, String mode) async {
+    final response = await chat.sendMessage(Content.text(
+        "Please respond to this prompt in a " + mode + " way: " + message));
     final text = response.text;
     if (text == null) {
       return 'No response from API.';
@@ -33,7 +34,6 @@ class GeminiRepository {
 
   // Future<String> sendMessageWithImage(String textInput, List<Uint8List> imageBytes) async {
   //   var content= Content.text(textInput);
-
 
   //   final response = await _chat.sendMessage(Content.multi(content, ...imageBytes));
   //   final text = response.text;
