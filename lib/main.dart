@@ -86,7 +86,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _loading = false;
-  String _selectedOption = "professional";
+  String _selectedOption = "normal";
 
   @override
   void initState() {
@@ -171,8 +171,12 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 DropdownButton<String>(
                   value: _selectedOption,
-                  items: <String>['funny', 'sarcastic', 'professional']
-                      .map((String value) {
+                  items: <String>[
+                    'normal',
+                    'funny',
+                    'sarcastic',
+                    'professional'
+                  ].map((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(value),

@@ -23,8 +23,13 @@ class GeminiRepository {
   }
 
   Future<String> sendMessage(String message, String mode) async {
-    final response = await chat.sendMessage(Content.text(
-        "Please respond to this prompt in a " + mode + " way: " + message));
+    var response;
+    if (mode == 'normal') {
+      response = await chat.sendMessage(Content.text(message));
+    } else {
+      response = await chat.sendMessage(Content.text(
+          "Please respond to this prompt in a " + mode + " way: " + message));
+    }
     final text = response.text;
     if (text == null) {
       return 'No response from API.';
