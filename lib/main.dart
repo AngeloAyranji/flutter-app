@@ -21,7 +21,8 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.deepPurple, brightness: Brightness.dark),
+            seedColor: Color.fromARGB(255, 59, 210, 244),
+            brightness: Brightness.dark),
         useMaterial3: true,
       ),
       home: const Home(),
@@ -55,7 +56,7 @@ class _HomeState extends State<Home> {
               "Ask me anything",
               style: TextStyle(
                 fontFamily: 'Poppins',
-                color: Colors.blueGrey,
+                color: Color.fromARGB(255, 59, 210, 244),
                 fontSize: 22,
                 shadows: [
                   Shadow(
