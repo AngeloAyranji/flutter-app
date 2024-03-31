@@ -40,6 +40,9 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   String _selectedOption = "normal";
 
+  final GeminiRepository geminiRepository =
+      GeminiRepository(apiKey: dotenv.env['API_KEY'] ?? '');
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,6 +96,7 @@ class _HomeState extends State<Home> {
                 ];
               },
               onSelected: (String value) {
+                geminiRepository.setMode(value);
                 setState(() {
                   _selectedOption = value;
                 });
@@ -227,7 +231,7 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() => _loading = true);
 
     try {
-      final text = await geminiRepository.sendMessage(message, mode);
+      final text = await geminiRepository.sendMessage(message);
       setState(() => _loading = false);
     } catch (e) {
       debugPrint(e.toString());
