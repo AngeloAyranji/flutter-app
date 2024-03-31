@@ -37,6 +37,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  String _selectedOption = "normal";
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,20 +51,39 @@ class _HomeState extends State<Home> {
               height: 24,
             ),
             const SizedBox(width: 8),
-            Text(
-              "Ask me anything",
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                color: Colors.blueGrey,
-                fontSize: 24,
-                shadows: [
-                  Shadow(
-                    color: Colors.black.withOpacity(0.5), // Shadow color
-                    blurRadius: 2, // Shadow blur radius
-                    offset: const Offset(1, 1), // Shadow offset
-                  ),
-                ],
+            Padding(
+              padding: const EdgeInsets.only(
+                  right: 20), // Adjust the padding as needed
+              child: Text(
+                "Ask me anything",
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  color: Colors.blueGrey,
+                  fontSize: 24,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black.withOpacity(0.5), // Shadow color
+                      blurRadius: 2, // Shadow blur radius
+                      offset: const Offset(1, 1), // Shadow offset
+                    ),
+                  ],
+                ),
               ),
+            ),
+            DropdownButton<String>(
+              value: _selectedOption,
+              items: <String>['normal', 'funny', 'sarcastic', 'professional']
+                  .map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedOption = newValue!;
+                });
+              },
             ),
           ],
         ),
@@ -168,25 +189,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 const SizedBox.square(
                   dimension: 15,
-                ),
-                DropdownButton<String>(
-                  value: _selectedOption,
-                  items: <String>[
-                    'normal',
-                    'funny',
-                    'sarcastic',
-                    'professional'
-                  ].map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedOption = newValue!;
-                    });
-                  },
                 ),
                 if (!_loading)
                   IconButton(
