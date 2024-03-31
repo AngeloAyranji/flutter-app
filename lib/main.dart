@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
@@ -36,6 +37,11 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  String _selectedOption = "normal";
+
+  final GeminiRepository geminiRepository =
+      GeminiRepository(apiKey: dotenv.env['API_KEY'] ?? '');
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,15 +59,47 @@ class _HomeState extends State<Home> {
               style: TextStyle(
                 fontFamily: 'Poppins',
                 color: Colors.blueGrey,
-                fontSize: 24,
+                fontSize: 22,
                 shadows: [
                   Shadow(
-                    color: Colors.black.withOpacity(0.5), // Shadow color
-                    blurRadius: 2, // Shadow blur radius
-                    offset: const Offset(1, 1), // Shadow offset
+                    color: Colors.black.withOpacity(0.5),
+                    blurRadius: 2,
+                    offset: const Offset(1, 1),
                   ),
                 ],
               ),
+            ),
+            const SizedBox(width: 8),
+            PopupMenuButton<String>(
+              initialValue: _selectedOption,
+              offset: Offset(
+                  70, 0), // Set offset to shift the menu towards the right
+              itemBuilder: (BuildContext context) {
+                return <PopupMenuEntry<String>>[
+                  PopupMenuItem<String>(
+                    value: 'normal',
+                    child: Text('Normal'),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'funny',
+                    child: Text('Funny'),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'sarcastic',
+                    child: Text('Sarcastic'),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'professional',
+                    child: Text('Professional'),
+                  ),
+                ];
+              },
+              onSelected: (String value) {
+                geminiRepository.setMode(value);
+                setState(() {
+                  _selectedOption = value;
+                });
+              },
             ),
           ],
         ),
@@ -79,11 +117,13 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final GeminiRepository geminiRepository = GeminiRepository(apiKey: dotenv.env['API_KEY'] ?? '');
-  
+  final GeminiRepository geminiRepository =
+      GeminiRepository(apiKey: dotenv.env['API_KEY'] ?? '');
+
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _loading = false;
+  String _selectedOption = "normal";
 
   @override
   void initState() {
@@ -103,17 +143,21 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: hasApiKey
                 ? ListView.builder(
-              controller: _scrollController,
-              itemBuilder: (context, idx) {
-                final content = geminiRepository.chat.history.toList()[idx];
-                final text = content.parts.whereType<TextPart>().map<String>((e) => e.text).join('');
-                return MessageWidget(
-                  text: text,
-                  isFromUser: content.role == 'user',
-                );
-              },
-              itemCount: geminiRepository.chat.history.length,
-            )
+                    controller: _scrollController,
+                    itemBuilder: (context, idx) {
+                      final content =
+                          geminiRepository.chat.history.toList()[idx];
+                      final text = content.parts
+                          .whereType<TextPart>()
+                          .map<String>((e) => e.text)
+                          .join('');
+                      return MessageWidget(
+                        text: text,
+                        isFromUser: content.role == 'user',
+                      );
+                    },
+                    itemCount: geminiRepository.chat.history.length,
+                  )
                 : ListView(
                     children: const [
                       Text('No API key found. Please provide an API Key.'),
@@ -155,7 +199,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ),
                     onFieldSubmitted: (String value) {
-                      _sendChatMessage(value);
+                      _sendChatMessage(value, _selectedOption);
                     },
                   ),
                 ),
@@ -165,7 +209,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 if (!_loading)
                   IconButton(
                     onPressed: () async {
-                      _sendChatMessage(_textController.text);
+                      _sendChatMessage(_textController.text, _selectedOption);
                     },
                     icon: Icon(
                       Icons.send,
@@ -182,7 +226,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Future<void> _sendChatMessage(String message) async {
+  Future<void> _sendChatMessage(String message, String mode) async {
     setState(() => _loading = true);
 
     try {
