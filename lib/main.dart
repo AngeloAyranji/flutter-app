@@ -51,37 +51,49 @@ class _HomeState extends State<Home> {
               height: 24,
             ),
             const SizedBox(width: 8),
-            Padding(
-              padding: const EdgeInsets.only(
-                  right: 20), // Adjust the padding as needed
-              child: Text(
-                "Ask me anything",
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  color: Colors.blueGrey,
-                  fontSize: 24,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black.withOpacity(0.5), // Shadow color
-                      blurRadius: 2, // Shadow blur radius
-                      offset: const Offset(1, 1), // Shadow offset
-                    ),
-                  ],
-                ),
+            Text(
+              "Ask me anything",
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                color: Colors.blueGrey,
+                fontSize: 22,
+                shadows: [
+                  Shadow(
+                    color: Colors.black.withOpacity(0.5),
+                    blurRadius: 2,
+                    offset: const Offset(1, 1),
+                  ),
+                ],
               ),
             ),
-            DropdownButton<String>(
-              value: _selectedOption,
-              items: <String>['normal', 'funny', 'sarcastic', 'professional']
-                  .map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
+            const SizedBox(width: 8),
+            PopupMenuButton<String>(
+              initialValue: _selectedOption,
+              offset: Offset(
+                  70, 0), // Set offset to shift the menu towards the right
+              itemBuilder: (BuildContext context) {
+                return <PopupMenuEntry<String>>[
+                  PopupMenuItem<String>(
+                    value: 'normal',
+                    child: Text('Normal'),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'funny',
+                    child: Text('Funny'),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'sarcastic',
+                    child: Text('Sarcastic'),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'professional',
+                    child: Text('Professional'),
+                  ),
+                ];
+              },
+              onSelected: (String value) {
                 setState(() {
-                  _selectedOption = newValue!;
+                  _selectedOption = value;
                 });
               },
             ),
