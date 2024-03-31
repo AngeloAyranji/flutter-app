@@ -7,6 +7,8 @@ class GeminiRepository {
   late final ChatSession chat;
   final String apiKey;
 
+  static String mode = "normal";
+
   GeminiRepository({required this.apiKey}) {
     _init();
   }
@@ -22,7 +24,11 @@ class GeminiRepository {
     chat = _model.startChat();
   }
 
-  Future<String> sendMessage(String message, String mode) async {
+  void setMode(String newMode) {
+    mode = newMode;
+  }
+
+  Future<String> sendMessage(String message) async {
     var response;
     if (mode == 'normal') {
       response = await chat.sendMessage(Content.text(message));
